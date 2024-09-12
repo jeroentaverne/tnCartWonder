@@ -43,6 +43,14 @@ package CONFIG;
     localparam ENABLE_IKAOPLL   = 2;            // 機能の有効(IKAOPLL)
 
     /***************************************************************
+     * Board selection
+     ***************************************************************/
+    localparam BOARD_TNCART_REV1        =  0;  
+    localparam BOARD_WONDERTANG_REV102D = 50; 
+
+    localparam BOARD                    = BOARD_WONDERTANG_REV102D;
+
+    /***************************************************************
      * フラッシュメモリマップ
      *  00_0000 +-------------------+
      *          | bit stream(1MB)   |
