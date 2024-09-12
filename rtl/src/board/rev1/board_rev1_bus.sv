@@ -59,8 +59,10 @@ module BOARD_REV1_BUS(
      * バッファの切り替え
      ***************************************************************/
     localparam MSEL_A0_A7  = (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 0 :
+                             (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B)? 0 :
                              1;
     localparam MSEL_A8_A15 = (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 1 :
+                             (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B)? 1 :
                              0;
 
     localparam  CS_A8       = MSEL_A8_A15,    BIT_A8      = 0;
