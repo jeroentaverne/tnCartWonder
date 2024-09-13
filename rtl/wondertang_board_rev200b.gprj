@@ -72,6 +72,7 @@
         <File path="src/peripheral/video/video.sv" type="file.verilog" enable="1"/>
         <File path="src/peripheral/video/video_dummy.sv" type="file.verilog" enable="1"/>
         <File path="src/peripheral/video/video_upscan.sv" type="file.verilog" enable="1"/>
+        <File path="src/peripheral/ws2812.v" type="file.verilog" enable="1"/>
         <File path="src/wondertang_board_rev200b_top.sv" type="file.verilog" enable="1"/>
         <File path="src/peripheral/sound/vm2413/attacktable.vhd" type="file.vhdl" enable="1"/>
         <File path="src/peripheral/sound/vm2413/controller.vhd" type="file.vhdl" enable="1"/>

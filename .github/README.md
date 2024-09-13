@@ -93,3 +93,24 @@ With the above invocation the ROM gets loaded, and the `/R` parameter causes an 
 
 The `/R` parameter is useful to force a reset on those MSX machines lacking a reset button.
 If your MSX has a reset button, you may omit the `/R` parameter and use the reset button when you want to launch the loaded ROM.
+
+
+# Known Issues
+
+- The WS2812 RGB LED of the Tang Nano 20K causes interferences on the WonderTANG! when lit, which may cause the MSX computer to hang or reboot.
+
+  The RGB LED cannot be completely disabled reliably because the DIN signal of the led is mapped to IO_LOC 79 on the Tang Nano 20K which is used on the WonderTANG! by CART_DATA_SIG[3],
+  so depending on the sequence of data present in the data bus the led may change state.
+
+  Two workarounds have been added to mitigate the problem:
+  - switch on the RGB LED to red color on poweron (to reduce the noise when it goes from off to on, which affects specially the MSX boot sequence)
+  - sample CART_DATA_SIG[3] an extra cycle to compensate for noise
+
+  This makes the WonderTANG! with the tnCart bitstream way more stable.
+
+- SofaRun does not properly detect the SCC.
+
+- MGSP does not properly detect the SCC.
+
+- Some games like F1SPIRIT experience problems (sprites get mad) when loaded with TNCROM, but work fine when loaded with SofaRun.
+

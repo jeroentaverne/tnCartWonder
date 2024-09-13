@@ -107,25 +107,52 @@ module BOARD_REV1_BUS(
             state <= 0;
             mux_cs_ff <= MUX_SEL_0;
         end else begin
-            state <= (state == 4'd8) ? 4'd0 : (state + 1'd1);
-            case (state)
-                4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0
-                4'd1:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read0 change 1
-                4'd2:       begin   mux_cs_ff <= MUX_SEL_1;    end  // wait
-                4'd3:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read1
-                4'd4:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read1 change 2
-                4'd5:       begin   mux_cs_ff <= MUX_SEL_2;    end  // wait
-                4'd6:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read2
-                4'd7:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read2 change 0
-                4'd8:       begin   mux_cs_ff <= MUX_SEL_0;    end  // wait
-            endcase
+            if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D ||
+                CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B) begin
+                // The WS2812 led causes noise in the A3 signal.
+                // To mitigate it and get a cleaner signal sample MSEL0 signals (including A3) one extra time.
+                state <= (state == 4'd9) ? 4'd0 : (state + 1'd1);
+                case (state)
+                    4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0
+                    4'd1:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0 noisy
+                    4'd2:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read0 change 1
+                    4'd3:       begin   mux_cs_ff <= MUX_SEL_1;    end  // wait
+                    4'd4:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read1
+                    4'd5:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read1 change 2
+                    4'd6:       begin   mux_cs_ff <= MUX_SEL_2;    end  // wait
+                    4'd7:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read2
+                    4'd8:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read2 change 0
+                    4'd9:       begin   mux_cs_ff <= MUX_SEL_0;    end  // wait
+                endcase
+            end else begin
+                state <= (state == 4'd8) ? 4'd0 : (state + 1'd1);
+                case (state)
+                    4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0
+                    4'd1:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read0 change 1
+                    4'd2:       begin   mux_cs_ff <= MUX_SEL_1;    end  // wait
+                    4'd3:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read1
+                    4'd4:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read1 change 2
+                    4'd5:       begin   mux_cs_ff <= MUX_SEL_2;    end  // wait
+                    4'd6:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read2
+                    4'd7:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read2 change 0
+                    4'd8:       begin   mux_cs_ff <= MUX_SEL_0;    end  // wait
+                endcase
+            end
         end
     end
 
     wire [2:0]  mux_active;
-    assign      mux_active[0] = state == 4'd0 || state == 4'd1;
-    assign      mux_active[1] = state == 4'd3 || state == 4'd4;
-    assign      mux_active[2] = state == 4'd6 || state == 4'd7;
+    if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D ||
+        CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B) begin
+        // MSEL0 is active an extra cycle
+        assign      mux_active[0] = state == 4'd0 || state == 4'd1 || state == 4'd2 ;
+        assign      mux_active[1] = state == 4'd4 || state == 4'd5;
+        assign      mux_active[2] = state == 4'd7 || state == 4'd8;
+    end else begin
+        assign      mux_active[0] = state == 4'd0 || state == 4'd1;
+        assign      mux_active[1] = state == 4'd3 || state == 4'd4;
+        assign      mux_active[2] = state == 4'd6 || state == 4'd7;
+    end
 
     /***************************************************************
      * アドレスバスの取得
@@ -180,14 +207,28 @@ module BOARD_REV1_BUS(
     assign  CART_INT_n = !Bus.INT_n;
     assign  CART_WAIT_n = !Bus.WAIT_n;
 
+    // To mitigate WS2812 induced noises which mainly happen when the rgb led switches state or colour
+    // we force it to a known state on poweron.
+    wire rgb;
+    wire rgb_done;
+    ws2812(
+        .clk(CLK_21M),
+        .rst_n(RESET_n),
+        .WS2812(rgb), // output to the interface of WS2812
+        .done(rgb_done)
+    );
+
     /***************************************************************
      * データバス
      ***************************************************************/
     logic [7:0] DIN;
-    wire dir = !(!CART_RD_n && !Bus.BUSDIR_n);
+    // direction is special during the rgb led setup
+    wire dir = !rgb_done ? 0 : !(!CART_RD_n && !Bus.BUSDIR_n);
     assign  CART_DATA_DIR = dir;
     assign  CART_BUSDIR_n = dir;
-    assign  CART_DATA_SIG = dir ? 8'bZZZZ_ZZZZ : Bus.DOUT;
+    // A3 aka CART_DATA_SIG[3] is connected to IO_LOC 79 (2812_DIN) so we must send the rgb setup sequence
+    // through the cartridge data bus... but only until the rgb is initialized to a known state
+    assign  CART_DATA_SIG = !rgb_done ? { rgb, rgb, rgb, rgb, rgb, rgb, rgb, rgb } : dir ? 8'bZZZZ_ZZZZ : Bus.DOUT;
     PIN_FILTER u_d0_in (.CLK(CLK), .RESET_n(RESET_n), .ENA(1'b1), .IN(CART_DATA_SIG[0]), .OUT(DIN[0]));
     PIN_FILTER u_d1_in (.CLK(CLK), .RESET_n(RESET_n), .ENA(1'b1), .IN(CART_DATA_SIG[1]), .OUT(DIN[1]));
     PIN_FILTER u_d2_in (.CLK(CLK), .RESET_n(RESET_n), .ENA(1'b1), .IN(CART_DATA_SIG[2]), .OUT(DIN[2]));
