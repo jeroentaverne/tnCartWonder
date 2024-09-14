@@ -58,10 +58,12 @@ module BOARD_REV1_BUS(
     /***************************************************************
      * バッファの切り替え
      ***************************************************************/
-    localparam MSEL_A0_A7  = (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 0 :
+    localparam MSEL_A0_A7  = (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV101C)? 0 :
+                             (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 0 :
                              (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B)? 0 :
                              1;
     localparam MSEL_A8_A15 = (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 1 :
+                             (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 1 :
                              (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B)? 1 :
                              0;
 
@@ -107,7 +109,8 @@ module BOARD_REV1_BUS(
             state <= 0;
             mux_cs_ff <= MUX_SEL_0;
         end else begin
-            if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D ||
+            if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV101C ||
+                CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D ||
                 CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B) begin
                 // The WS2812 led causes noise in the A3 signal.
                 // To mitigate it and get a cleaner signal sample MSEL0 signals (including A3) one extra time.
@@ -142,7 +145,8 @@ module BOARD_REV1_BUS(
     end
 
     wire [2:0]  mux_active;
-    if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D ||
+    if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV101C ||
+        CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D ||
         CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B) begin
         // MSEL0 is active an extra cycle
         assign      mux_active[0] = state == 4'd0 || state == 4'd1 || state == 4'd2 ;
@@ -204,8 +208,11 @@ module BOARD_REV1_BUS(
     /***************************************************************
      * その他の信号の出力
      ***************************************************************/
-    assign  CART_INT_n = !Bus.INT_n;
-    assign  CART_WAIT_n = !Bus.WAIT_n;
+    if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV101C) begin
+        assign  CART_INT_n = Bus.INT_n;
+    end else begin
+        assign  CART_WAIT_n = !Bus.WAIT_n;
+    end
 
     // To mitigate WS2812 induced noises which mainly happen when the rgb led switches state or colour
     // we force it to a known state on poweron.
