@@ -62,7 +62,7 @@ module BOARD_REV1_BUS(
                              (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 0 :
                              (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B)? 0 :
                              1;
-    localparam MSEL_A8_A15 = (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 1 :
+    localparam MSEL_A8_A15 = (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV101C)? 1 :
                              (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D)? 1 :
                              (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B)? 1 :
                              0;
@@ -211,8 +211,9 @@ module BOARD_REV1_BUS(
     if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV101C) begin
         assign  CART_INT_n = Bus.INT_n;
     end else begin
-        assign  CART_WAIT_n = !Bus.WAIT_n;
+        assign  CART_INT_n = !Bus.INT_n;
     end
+    assign  CART_WAIT_n = !Bus.WAIT_n;
 
     // To mitigate WS2812 induced noises which mainly happen when the rgb led switches state or colour
     // we force it to a known state on poweron.
