@@ -109,54 +109,25 @@ module BOARD_REV1_BUS(
             state <= 0;
             mux_cs_ff <= MUX_SEL_0;
         end else begin
-            if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV101C ||
-                CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D ||
-                CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B) begin
-                // The WS2812 led causes noise in the A3 signal.
-                // To mitigate it and get a cleaner signal sample MSEL0 signals (including A3) one extra time.
-                state <= (state == 4'd9) ? 4'd0 : (state + 1'd1);
-                case (state)
-                    4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0
-                    4'd1:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0 noisy
-                    4'd2:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read0 change 1
-                    4'd3:       begin   mux_cs_ff <= MUX_SEL_1;    end  // wait
-                    4'd4:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read1
-                    4'd5:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read1 change 2
-                    4'd6:       begin   mux_cs_ff <= MUX_SEL_2;    end  // wait
-                    4'd7:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read2
-                    4'd8:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read2 change 0
-                    4'd9:       begin   mux_cs_ff <= MUX_SEL_0;    end  // wait
-                endcase
-            end else begin
-                state <= (state == 4'd8) ? 4'd0 : (state + 1'd1);
-                case (state)
-                    4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0
-                    4'd1:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read0 change 1
-                    4'd2:       begin   mux_cs_ff <= MUX_SEL_1;    end  // wait
-                    4'd3:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read1
-                    4'd4:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read1 change 2
-                    4'd5:       begin   mux_cs_ff <= MUX_SEL_2;    end  // wait
-                    4'd6:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read2
-                    4'd7:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read2 change 0
-                    4'd8:       begin   mux_cs_ff <= MUX_SEL_0;    end  // wait
-                endcase
-            end
+            state <= (state == 4'd8) ? 4'd0 : (state + 1'd1);
+            case (state)
+                4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0
+                4'd1:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read0 change 1
+                4'd2:       begin   mux_cs_ff <= MUX_SEL_1;    end  // wait
+                4'd3:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read1
+                4'd4:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read1 change 2
+                4'd5:       begin   mux_cs_ff <= MUX_SEL_2;    end  // wait
+                4'd6:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read2
+                4'd7:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read2 change 0
+                4'd8:       begin   mux_cs_ff <= MUX_SEL_0;    end  // wait
+            endcase
         end
     end
 
     wire [2:0]  mux_active;
-    if (CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV101C ||
-        CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV102D ||
-        CONFIG::BOARD == CONFIG::BOARD_WONDERTANG_REV200B) begin
-        // MSEL0 is active an extra cycle
-        assign      mux_active[0] = state == 4'd0 || state == 4'd1 || state == 4'd2 ;
-        assign      mux_active[1] = state == 4'd4 || state == 4'd5;
-        assign      mux_active[2] = state == 4'd7 || state == 4'd8;
-    end else begin
-        assign      mux_active[0] = state == 4'd0 || state == 4'd1;
-        assign      mux_active[1] = state == 4'd3 || state == 4'd4;
-        assign      mux_active[2] = state == 4'd6 || state == 4'd7;
-    end
+    assign      mux_active[0] = state == 4'd0 || state == 4'd1;
+    assign      mux_active[1] = state == 4'd3 || state == 4'd4;
+    assign      mux_active[2] = state == 4'd6 || state == 4'd7;
 
     /***************************************************************
      * アドレスバスの取得
