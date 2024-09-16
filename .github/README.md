@@ -132,6 +132,14 @@ With the above invocation the ROM gets loaded, and the `/R` parameter causes an 
 The `/R` parameter is useful to force a reset on those MSX machines lacking a reset button.
 If your MSX has a reset button, you may omit the `/R` parameter and use the reset button when you want to launch the loaded ROM.
 
+## How to activate the SCC with tncrom
+
+You can use the [TNCROM.COM](https://github.com/buppu3/tnCart/blob/main/tools/tncrom/bin/TNCROM.COM) tool to activate the SCC before launching software that uses it.
+
+`A:> TNCROM.COM /T KONAMI_SCC_I /N`
+
+With the above invocation the SCC_I is activated and control is returned to DOS.
+
 
 # Known Issues
 
@@ -146,9 +154,9 @@ If your MSX has a reset button, you may omit the `/R` parameter and use the rese
 
   This makes the WonderTANG! with the tnCart bitstream way more stable.
 
-- SofaRun does not properly detect the SCC.
+- ~~SofaRun does not properly detect the SCC~~ [Fixed](https://github.com/buppu3/tnCart/issues/11).
 
-- MGSP does not properly detect the SCC.
+- ~~MGSP does not properly detect the SCC~~ [Fixed](https://github.com/buppu3/tnCart/issues/11).
 
-- Some games like F1SPIRIT experience problems (sprites get mad) when loaded with TNCROM, but work fine when loaded with SofaRun.
+- ~~Some games like F1SPIRIT experience problems (sprites get mad) when loaded with TNCROM, but work fine when loaded with SofaRun~~ [Fixed](https://github.com/buppu3/tnCart/issues/12).
 
