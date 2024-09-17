@@ -165,13 +165,15 @@ With the above invocation the SCC_I is activated and control is returned to DOS.
 
 # Known Issues
 
-- The WS2812 RGB LED of the Tang Nano 20K seems to cause interferences on the WonderTANG! when lit, which may cause the MSX computer to hang or reboot.
+- [tnCart #14](https://github.com/buppu3/tnCart/issues/14)
+
+- ~~The WS2812 RGB LED of the Tang Nano 20K seems to cause interferences on the WonderTANG! when lit, which may cause the MSX computer to hang or reboot.~~
 
   The RGB LED cannot be completely disabled reliably because the DIN signal of the led is mapped to IO_LOC 79 on the Tang Nano 20K which is used on the WonderTANG! by CART_DATA_SIG[3],
   so depending on the sequence of data present in the data bus the led may change state.
 
-  ~~Two workarounds have~~A workaround been added to try to mitigate the problem:
-  - switch on the RGB LED to red color on poweron (to reduce the noise when it goes from off to on, which affects specially the MSX boot sequence)
+  ~~Two workarounds have~~ ~~A workaround been added to try to mitigate the problem:~~
+  - switch on the RGB LED to red color on poweron ~~(to reduce the noise when it goes from off to on, which affects specially the MSX boot sequence)~~
   - ~~sample CART_DATA_SIG[3] an extra cycle to compensate for noise~~
 
 - ~~SofaRun does not properly detect the SCC~~ [Fixed](https://github.com/buppu3/tnCart/issues/11).
