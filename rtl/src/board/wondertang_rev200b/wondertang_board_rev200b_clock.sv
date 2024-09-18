@@ -121,6 +121,7 @@ module WONDERTANG_BOARD_REV200B_CLOCK (
     defparam u_div_tmds.DIV_MODE = "5";
     defparam u_div_tmds.GSREN = "false";
 
+`ifdef XXX_TEMP_FIX_MUST_BE_FIXED_IN_A_PROPER_WAY_WONT_PASS_TIMING_REPORT_AND_MAY_CAUSE_INSTABILITIES
     /***************************************************************
      * 3.58MHz * 30 = 107.4MHz
      ***************************************************************/
@@ -166,6 +167,50 @@ module WONDERTANG_BOARD_REV200B_CLOCK (
     defparam u_pll_base.CLKOUTD_SRC = "CLKOUT";
     defparam u_pll_base.CLKOUTD3_SRC = "CLKOUT";
     defparam u_pll_base.DEVICE = "GW2AR-18C";
+`else
+    wire CLK_MEM_LOCK;
+    assign CLK_MEM_READY = RESET_n && CLK_MEM_LOCK;
+    localparam FREQ=108_000;
+    rPLL u_pll_base (
+        .CLKOUT(CLK_MEM),
+        .LOCK(CLK_MEM_LOCK),
+        .CLKOUTP(CLK_MEM_P),
+        .CLKOUTD(),
+        .CLKOUTD3(),
+        .RESET(!RESET_n),
+        .RESET_P(1'b0),
+        .CLKIN(CLK_27M),
+        .CLKFB(1'b0),
+        .FBDSEL(6'b000000),
+        .IDSEL(6'b000000),
+        .ODSEL(6'b000000),
+        .PSDA(4'b0000),
+        .DUTYDA(4'b0000),
+        .FDLY(4'b1111)
+    );
+    defparam u_pll_base.FCLKIN = "27";
+    defparam u_pll_base.DYN_IDIV_SEL = "false";
+    defparam u_pll_base.IDIV_SEL = 0;
+    defparam u_pll_base.DYN_FBDIV_SEL = "false";
+    defparam u_pll_base.FBDIV_SEL = 3;
+    defparam u_pll_base.DYN_ODIV_SEL = "false";
+    defparam u_pll_base.ODIV_SEL = 8;
+    defparam u_pll_base.PSDA_SEL = "1000";
+    defparam u_pll_base.DYN_DA_EN = "false";
+    defparam u_pll_base.DUTYDA_SEL = "1000";
+    defparam u_pll_base.CLKOUT_FT_DIR = 1'b1;
+    defparam u_pll_base.CLKOUTP_FT_DIR = 1'b1;
+    defparam u_pll_base.CLKOUT_DLY_STEP = 0;
+    defparam u_pll_base.CLKOUTP_DLY_STEP = 0;
+    defparam u_pll_base.CLKFB_SEL = "internal";
+    defparam u_pll_base.CLKOUT_BYPASS = "false";
+    defparam u_pll_base.CLKOUTP_BYPASS = "false";
+    defparam u_pll_base.CLKOUTD_BYPASS = "false";
+    defparam u_pll_base.DYN_SDIV_SEL = 2;
+    defparam u_pll_base.CLKOUTD_SRC = "CLKOUT";
+    defparam u_pll_base.CLKOUTD3_SRC = "CLKOUT";
+    defparam u_pll_base.DEVICE = "GW2AR-18C";
+`endif
 
     /***************************************************************
      * 107.4MHz / 5 = 21.48MHz
