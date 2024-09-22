@@ -51,7 +51,7 @@ package CONFIG;
     localparam BOARD_WONDERTANG_REV200B = 52;
 
     //localparam BOARD                    = BOARD_WONDERTANG_REV102D;
-    localparam BOARD                    = BOARD_WONDERTANG_REV200B;
+    localparam BOARD                    = BOARD_WONDERTANG_REV101C;
 
     /***************************************************************
      * フラッシュメモリマップ

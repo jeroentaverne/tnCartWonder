@@ -12,12 +12,14 @@ create_clock -name CLK_3_58M -period 279.330 -waveform {0 139.665} [get_ports {C
 //------------------------
 // 107.4MHz(CLK_BASE = CLK_3_58M * 30)
 create_generated_clock -name CLK_BASE -source [get_ports {CART_CLOCK}] -master_clock CLK_3_58M -divide_by 1 -multiply_by 30 -add [get_nets {CLK_BASE}]
+// 108MHz(CLK_BASE)
+create_generated_clock -name CLK_BASE -source [get_nets {CLK_27M}] -master_clock CLK_27M -divide_by 1 -multiply_by 4 -add [get_nets {CLK_BASE}]
 
 // 21.48MHz(CLK_21M = CLK_BASE / 5)
 create_generated_clock -name CLK_21M -source [get_nets {CLK_BASE}] -master_clock CLK_BASE -divide_by 5 -multiply_by 1 -add [get_nets {Bus.CLK_21M}]
 
 // 5.4MHz(DCLK = CLK_BASE / 20)
-create_generated_clock -name DCLK -source [get_nets {CLK_BASE}] -master_clock CLK_BASE -divide_by 20 -multiply_by 1 -duty_cycle 10 -offset 9.31 -add [get_nets {Video.DCLK}]
+//create_generated_clock -name DCLK -source [get_nets {CLK_BASE}] -master_clock CLK_BASE -divide_by 20 -multiply_by 1 -duty_cycle 10 -offset 9.31 -add [get_nets {Video.DCLK}]
 
 //------------------------
 // TMDS
@@ -32,4 +34,5 @@ create_generated_clock -name CLK_TMDS_P -source [get_nets {CLK_TMDS_S}] -master_
 //------------------------
 // グループ
 //------------------------
-set_clock_groups -asynchronous -group [get_clocks {CLK_3_58M}] -group [get_clocks {CLK_BASE CLK_21M}] -group [get_clocks {DCLK}] -group [get_clocks {CLK_TMDS_S CLK_TMDS_P}]
+//set_clock_groups -asynchronous -group [get_clocks {CLK_3_58M}] -group [get_clocks {CLK_BASE CLK_21M}] -group [get_clocks {DCLK}] -group [get_clocks {CLK_TMDS_S CLK_TMDS_P}]
+set_clock_groups -asynchronous -group [get_clocks {CLK_3_58M}] -group [get_clocks {CLK_BASE CLK_21M CLK_27M}] -group [get_clocks {CLK_TMDS_S CLK_TMDS_P}]
