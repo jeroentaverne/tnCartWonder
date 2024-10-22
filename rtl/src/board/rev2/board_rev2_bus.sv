@@ -99,7 +99,7 @@ module BOARD_REV2_BUS(
             state <= 0;
             mux_cs_ff <= MUX_SEL_0;
         end else begin
-            state <= (state == 4'd8) ? 4'd0 : (state + 1'd1);
+            state <= (state == 4'd11) ? 4'd0 : (state + 1'd1);
             case (state)
                 4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0
                 4'd1:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read0 change 1
