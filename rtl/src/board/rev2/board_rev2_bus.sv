@@ -89,39 +89,90 @@ module BOARD_REV2_BUS(
     localparam  MUX_SEL_2   = 2'b10;
     localparam  MUX_SEL_3   = 2'b11;
 
+    // 74139 が最大 4.9nsec、74245が最大 9.0nsec の遅延あるので、A0-1 信号を早めに出力する
     //
-    logic [3:0] state;
+    // state_in state_sel   operation   A1  A0  O0  O1  O2  O3  MPx_33
+    // -------------------------------------------------------------------------------------------
+    //   0                              0   0   0   1   1   1   RFSH,SLTSL,MERQ,IORQ,RESET,JP
+    //           0                      0   0   0   1   1   1   A0-5
+    //   1                  input 0     0   0   0   1   1   1   A0-5
+    //           1          select 1    0   0   0   1   1   1   A0-5
+    //   2                  input 0     0   1   0   1   1   1   A0-5
+    //           2                      0   1   1   0   1   1   A0-5
+    //   3                              0   1   1   0   1   1   A0-5
+    //           3                      0   1   1   0   1   1   A6-A11
+    //   4                  input 1     0   1   1   0   1   1   A6-A11
+    //           4          select 2    0   1   1   0   1   1   A6-A11
+    //   5                  input 1     1   0   1   0   1   1   A6-A11
+    //           5                      1   0   1   1   0   1   A6-A11
+    //   6                              1   0   1   1   0   1   A6-A11
+    //           6                      1   0   1   1   0   1   A12-A15,RD,WR
+    //   7                  input 2     1   0   1   1   0   1   A12-A15,RD,WR
+    //           7          select 3    1   0   1   1   0   1   A12-A15,RD,WR
+    //   8                  input 2     1   1   1   1   0   1   A12-A15,RD,WR
+    //           8                      1   1   1   1   1   0   A12-A15,RD,WR
+    //   9                              1   1   1   1   1   0   A12-A15,RD,WR
+    //           9                      1   1   1   1   1   0   RFSH,SLTSL,MERQ,IORQ,RESET,JP
+    //  10                  input 3     1   1   1   1   1   0   RFSH,SLTSL,MERQ,IORQ,RESET,JP
+    //          10          select 0    1   1   1   1   1   0   RFSH,SLTSL,MERQ,IORQ,RESET,JP
+    //  11                  input 3     0   0   1   1   1   0   RFSH,SLTSL,MERQ,IORQ,RESET,JP
+    //          11                      0   0   0   1   1   1   RFSH,SLTSL,MERQ,IORQ,RESET,JP
 
-    always_ff @(posedge CLK or negedge RESET_n)
+    // state_sel と state_in の同期
+    logic ena_sel;
+    DFFC u_busena (
+        .D(1'b1),
+        .CLK(CLK),
+        .CLEAR(!RESET_n),
+        .Q(ena_sel)
+    );
+
+    // MUX 選択
+    logic [3:0] state_sel;
+
+    always_ff @(negedge CLK or negedge ena_sel)
     begin
-        if(!RESET_n)
-        begin
-            state <= 0;
+        if(!ena_sel) begin
+            state_sel <= 0;
             mux_cs_ff <= MUX_SEL_0;
-        end else begin
-            state <= (state == 4'd11) ? 4'd0 : (state + 1'd1);
-            case (state)
-                4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end  // read0
-                4'd1:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read0 change 1
-                4'd2:       begin   mux_cs_ff <= MUX_SEL_1;    end  // wait
-                4'd3:       begin   mux_cs_ff <= MUX_SEL_1;    end  // read1
-                4'd4:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read1 change 2
-                4'd5:       begin   mux_cs_ff <= MUX_SEL_2;    end  // wait
-                4'd6:       begin   mux_cs_ff <= MUX_SEL_2;    end  // read2
-                4'd7:       begin   mux_cs_ff <= MUX_SEL_3;    end  // read2 change 3
-                4'd8:       begin   mux_cs_ff <= MUX_SEL_3;    end  // wait
-                4'd9:       begin   mux_cs_ff <= MUX_SEL_3;    end  // read3
-                4'd10:      begin   mux_cs_ff <= MUX_SEL_0;    end  // read3 change 0
-                4'd11:      begin   mux_cs_ff <= MUX_SEL_0;    end  // wait
+        end
+        else begin
+            state_sel <= (state_sel == 4'd11) ? 4'd0 : (state_sel + 1'd1);
+            case (state_sel)
+                4'd0:       begin   mux_cs_ff <= MUX_SEL_0;    end
+                4'd1:       begin   mux_cs_ff <= MUX_SEL_1;    end
+                4'd2:       begin   mux_cs_ff <= MUX_SEL_1;    end
+                4'd3:       begin   mux_cs_ff <= MUX_SEL_1;    end
+                4'd4:       begin   mux_cs_ff <= MUX_SEL_2;    end
+                4'd5:       begin   mux_cs_ff <= MUX_SEL_2;    end
+                4'd6:       begin   mux_cs_ff <= MUX_SEL_2;    end
+                4'd7:       begin   mux_cs_ff <= MUX_SEL_3;    end
+                4'd8:       begin   mux_cs_ff <= MUX_SEL_3;    end
+                4'd9:       begin   mux_cs_ff <= MUX_SEL_3;    end
+                4'd10:      begin   mux_cs_ff <= MUX_SEL_0;    end
+                4'd11:      begin   mux_cs_ff <= MUX_SEL_0;    end
             endcase
         end
     end
 
+    // MUX 入力
+    logic [3:0] state_in;
+
+    always_ff @(posedge CLK or negedge RESET_n)
+    begin
+        if(!RESET_n) begin
+            state_in <= 0;
+        end
+        else begin
+            state_in <= (state_in == 4'd11) ? 4'd0 : (state_in + 1'd1);
+        end
+    end
+
     wire [3:0]  mux_active;
-    assign      mux_active[0] = state == 4'd0 || state == 4'd1;
-    assign      mux_active[1] = state == 4'd3 || state == 4'd4;
-    assign      mux_active[2] = state == 4'd6 || state == 4'd7;
-    assign      mux_active[3] = state == 4'd9 || state == 4'd10;
+    assign      mux_active[0] = state_in == 4'd 1 || state_in == 4'd 2;
+    assign      mux_active[1] = state_in == 4'd 4 || state_in == 4'd 5;
+    assign      mux_active[2] = state_in == 4'd 7 || state_in == 4'd 8;
+    assign      mux_active[3] = state_in == 4'd10 || state_in == 4'd11;
 
     /***************************************************************
      * アドレスバスの取得
@@ -204,7 +255,7 @@ module BOARD_REV2_BUS(
      * アドレスバスの更新タイミングを MERQ や IORQ 等と合わせる
      ***************************************************************/
     reg [15:0] ff_addr;
-    always_ff @(posedge CLK) if(mux_active[2]) ff_addr <= ADDR;
+    always_ff @(posedge CLK) if(state_in == 4'd11) ff_addr <= ADDR;
 
     /***************************************************************
      * 信号を Bus I/F に出力
