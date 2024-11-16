@@ -187,6 +187,18 @@ module SDRAM #(
     end
 
     /***************************************************************
+     * WAIT_n 更新
+     ***************************************************************/
+    always_ff @(posedge CLK or negedge RESET_n)
+    begin
+        if(!RESET_n)                         Ram.WAIT_n <= 1;
+        else if(state == STATE_IDLE        ) Ram.WAIT_n <= 1;
+        else if(state == STATE_INACTIVE_ACK) Ram.WAIT_n <= 1;
+        else if(state == STATE_ACTIVE_ACK  ) Ram.WAIT_n <= !(begin_rd || begin_wr || begin_rfsh);
+        else                                 Ram.WAIT_n <= 0;
+    end
+
+    /***************************************************************
      * state 更新
      ***************************************************************/
     localparam      STATE_INIT          = (7'd0);

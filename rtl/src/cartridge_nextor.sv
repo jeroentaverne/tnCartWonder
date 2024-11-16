@@ -88,7 +88,9 @@ module CARTRIDGE_NEXTOR #(
     /***************************************************************
      * TF コントローラ
      ***************************************************************/
-    TF_CONTROLLER u_tf (
+    TF_CONTROLLER #(
+        .USE_WAIT_SIGNAL(CONFIG::CONTROL_BUS_WAIT_TF)
+    ) u_tf (
         .RESET_n,
         .CLK,
         .Bus(ExtBus[0]),

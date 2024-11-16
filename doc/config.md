@@ -33,6 +33,16 @@ ENABLE_* パラメータで各機能の ENABLE/DISABLE を設定できます。
 | ENABLE_PAC_WRITE | PAC データをフラッシュへ記録するか(ENABLE)/記録しないか(DISABLE)を設定します。 |
 | ENABLE_SCANLINE | アップスキャン時に走査線の隙間あり(ENABLE)/隙間なし(DISABLE)を設定します。 |
 
+### 内部動作の変更
+内部パラメータで微調整できますが、これを変更すると動作しなくなる可能性があります。動作テストをしていない項目があります。
+| パラメータ       | 内容                                                                     |
+| ---             | ---                                                                      |
+| RAM_IF_EXPANSION_USES_FF | RAM I/F 拡張モジュールで FlipFlop を使用(1)/使用しない(0) |
+| SLOT_EXPANSION_USES_FF | 拡張スロットモジュールで FlipFlop を使用(1)/使用しない(0) |
+| SOUND_BIT_WIDTH | サウンド生成のビット幅を指定 |
+| CONTROL_BUS_WAIT_TF | TF アクセス時に Z80 の WAIT 信号を制御しない(0) / 制御する(1) |
+| CONTROL_BUS_WAIT_RAM | RAM READ/WRITE 時に Z80 の WAIT 信号を制御しない(0) / クロックが3.58MHzより速い時だけ制御(1) / 常に制御する(2) |
+
 ## 備考
 ~~V9990 機能を有効にする際は、config.sv の ENABLE_V9990, ENABLE_V9990_CMD を 1 に、ENABLE_FM, ENABLE_PSG, ENABLE_SCC 等を 0 に変更してから論理合成してください。全ての機能を有効にした状態では回路の規模が大きくなるため、TangNano20K では合成できません。~~
 

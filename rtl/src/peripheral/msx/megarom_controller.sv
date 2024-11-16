@@ -177,6 +177,17 @@ module MEGAROM_CONTROLLER #(
         end
     endgenerate
 
+    /***************************************************************
+     * INT / WAIT
+     ***************************************************************/
+    wire ram_wait_n;
+    if(CONFIG::CONTROL_BUS_WAIT_RAM) begin
+        assign ram_wait_n = Ram.WAIT_n;
+    end
+    else begin
+        assign ram_wait_n = 1;
+    end
+
     if(USE_FF) begin
         always @(posedge CLK or negedge RESET_n) begin
             if(!RESET_n) begin
@@ -189,13 +200,13 @@ module MEGAROM_CONTROLLER #(
             end
             else begin
                 Bus.INT_n          <= tmp_int_n[0];
-                Bus.WAIT_n         <= tmp_wait_n[0];
+                Bus.WAIT_n         <= tmp_wait_n[0] & ram_wait_n;
             end
         end
     end
     else begin
         assign Bus.INT_n          = tmp_int_n[0];
-        assign Bus.WAIT_n         = tmp_wait_n[0];
+        assign Bus.WAIT_n         = tmp_wait_n[0] & ram_wait_n;
     end
 
     /***************************************************************

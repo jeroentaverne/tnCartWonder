@@ -219,6 +219,29 @@ module TNCART_BOARD_REV2_TOP (
     );
 
     /***************************************************************
+     * RAM wait 制御
+     ***************************************************************/
+    wire uma_wait;
+    if(CONFIG::CONTROL_BUS_WAIT_RAM == 0) begin
+        // WAIT 制御を行わない
+        assign uma_wait = 0;
+    end
+    else if(CONFIG::CONTROL_BUS_WAIT_RAM == 1) begin
+        // クロックが速い時だけ WAIT 制御を行う
+        CLK_SPEED u_clk_speed (
+            .RESET_n,
+            .CLK,
+            .CLK_3_58M(Bus.CLK),
+            .CLK_3_58M_EN(Bus.CLK_EN),
+            .FAST(uma_wait)
+        );
+    end
+    else begin
+        // WAIT 制御を常に行う
+        assign uma_wait = 1;
+    end
+
+    /***************************************************************
      * UMA
      ***************************************************************/
     UMA_IF Uma();
@@ -236,6 +259,7 @@ module TNCART_BOARD_REV2_TOP (
             .RESET_n,
             .CLK,
             .CLK_EN     (Bus.CLK_EN),
+            .WAIT_EN    (uma_wait),
             .Primary    (Ram),
             .Secondary  (UmaRam),
             .Uma

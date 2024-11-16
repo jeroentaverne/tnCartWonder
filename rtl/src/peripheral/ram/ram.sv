@@ -55,19 +55,20 @@ interface RAM_IF #(parameter ADDR_BIT_WIDTH=24);
     logic [31:0]                DIN;            // ライトデータ
     logic [31:0]                DOUT;           // リードデータ
     logic                       ACK_n;          // 応答
+    logic                       WAIT_n;         // WAIT
     logic [2:0]                 DIN_SIZE;       // R/Wデータサイズ
     logic                       TIMING;         // メモリアクセスタイミング信号
 
     // ホスト側ポート
     modport HOST (
                     output ADDR, OE_n, WE_n, RFSH_n, DIN, DIN_SIZE,
-                    input  DOUT, ACK_n, TIMING
+                    input  DOUT, ACK_n, WAIT_n, TIMING
                 );
 
     // メモリ側ポート
     modport DEVICE (
                     input  ADDR, OE_n, WE_n, RFSH_n, DIN, DIN_SIZE,
-                    output DOUT, ACK_n, TIMING
+                    output DOUT, ACK_n, WAIT_n, TIMING
                 );
 
     // ダミー接続
@@ -112,11 +113,13 @@ module EXPANSION_RAM #(
                     if(!RESET_n) begin
                         Secondary[num].DOUT    <= 0;
                         Secondary[num].ACK_n   <= 1;
+                        Secondary[num].WAIT_n  <= 1;
                         Secondary[num].TIMING  <= 0;
                     end
                     else begin
                         Secondary[num].DOUT    <= Primary.DOUT;
                         Secondary[num].ACK_n   <= Primary.ACK_n;
+                        Secondary[num].WAIT_n  <= Primary.WAIT_n;
                         Secondary[num].TIMING  <= Primary.TIMING;
                     end
                 end
@@ -124,6 +127,7 @@ module EXPANSION_RAM #(
             else begin
                 assign Secondary[num].DOUT    = Primary.DOUT;
                 assign Secondary[num].ACK_n   = Primary.ACK_n;
+                assign Secondary[num].WAIT_n  = Primary.WAIT_n;
                 assign Secondary[num].TIMING  = Primary.TIMING;
             end
 
@@ -183,6 +187,7 @@ module BYPASS_RAM (
     assign Primary.DIN_SIZE = Secondary.DIN_SIZE;
     assign Secondary.DOUT   = Primary.DOUT;
     assign Secondary.ACK_n  = Primary.ACK_n;
+    assign Secondary.WAIT_n = Primary.WAIT_n;
     assign Secondary.TIMING = Primary.TIMING;
 
 endmodule

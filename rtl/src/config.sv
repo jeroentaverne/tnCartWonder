@@ -141,6 +141,8 @@ package CONFIG;
     localparam          RAM_IF_EXPANSION_USES_FF= 0;                // RAM I/F 拡張動作に FF を使用(0=使用しない/1=使用する)
     localparam          SLOT_EXPANSION_USES_FF  = 1;                // SLOT 拡張に FF を使用(0=使用しない/1=使用する)
     localparam          SOUND_BIT_WIDTH         = 10;               // サウンド生成の量子化幅(bits)
+    localparam          CONTROL_BUS_WAIT_TF     = 0;                // TF アクセス時に WAIT をアサート(0=制御しない/1=制御する)
+    localparam          CONTROL_BUS_WAIT_RAM    = 0;                // RAM READ/WRITE 時に WAIT をアサート(0=制御しない/1=3.58MHzより速い時に制御する/2=常に制御する)
 endpackage
 
 `default_nettype wire

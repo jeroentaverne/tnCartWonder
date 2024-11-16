@@ -65,6 +65,7 @@ module UMA #(
     input   wire            RESET_n,
     input   wire            CLK,
     input   wire            CLK_EN,
+    input   wire            WAIT_EN,
     RAM_IF.HOST             Primary,
     RAM_IF.DEVICE           Secondary[0:COUNT-1],
     UMA_IF.DEVICE           Uma
@@ -298,6 +299,14 @@ end
                 if(!RESET_n)                                         Secondary[process_ch].ACK_n <= 1;
                 else if(det_any[process_ch])                         Secondary[process_ch].ACK_n <= 0;  // OE_n, WE_n, RFSH_n エッジ検出で ACK_n = 0
                 else if(done_ch[process_ch] && !req_any[process_ch]) Secondary[process_ch].ACK_n <= 1;  // 処理完了で残りの処理がないなら ACK_n = 1
+            end
+
+            // WAIT_n 更新
+            always_ff @(posedge CLK or negedge RESET_n) begin
+                if(!RESET_n)                                      Secondary[process_ch].WAIT_n <= 1;
+                else if(!WAIT_EN)                                 Secondary[process_ch].WAIT_n <= 1;
+                else if(req_oe[process_ch] || req_we[process_ch]) Secondary[process_ch].WAIT_n <= 0;  // OE_n, WE_n 要求がある場合は WAIT_n = 0
+                else if(exec_timing[(process_ch + 1) % COUNT])    Secondary[process_ch].WAIT_n <= 1;  // 次の ch の処理開始時に OE_n, WE_n 要求がないなら WAIT_n = 1
             end
 
             // OE_n の保持
